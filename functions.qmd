@@ -1,0 +1,67 @@
+---
+title: "Functions"
+format: html
+---
+
+Functions are a great way to save yourself typing (or cut & pasting) the same thing repeatedly. 
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+```
+
+
+
+
+name <- function(This is where you list the variables you want to be able to specify with the function.) {
+    This is where you put the code you want to apply to the variables.
+    }
+
+
+Type function & press shift + tab:
+
+
+```{r}
+
+
+
+
+
+```
+
+
+
+
+
+
+An example
+
+```{r}
+
+# Note the use of curly-curly {{}} around unquoted variables!
+
+runchart <- function(df,
+  yvalue,
+  run_title,
+  run_subtitle = NULL,
+  y_axis_title) {
+  df_checked <-     df |>  na.omit()
+  ggplot(df_checked, aes(x=period, y={{yvalue}}, colour = type)) + 
+    geom_line() + 
+    geom_point() + 
+    xlab('') + 
+    ylab(y_axis_title) + theme_light()  + theme(axis.text.x = element_text(angle = 90, hjust=0.5), legend.position = "none") + scale_x_date(date_labels="%b-%Y", date_breaks  ="3 month") + labs(title = run_title,
+    subtitle = run_subtitle,
+    caption = "Data Source: NHSRdatasets") 
+}
+```
+
+Now to use the function:
+
+```{r}
+ae_df <- NHSRdatasets::ae_attendances |> filter(org_code == "R1H")
+runchart(df = ae_df, yvalue = attendances, run_title = "ED attendances", y_axis_title = "number of attenances")
+
+```
+

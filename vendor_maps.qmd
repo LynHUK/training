@@ -1,0 +1,94 @@
+---
+title: "Trusts with unique EPR suppliers and other EPRs in their area"
+format:
+  html:
+    toc: true
+    toc-location: right
+    toc_float: true
+execute: 
+  echo: false
+  warning: false
+editor_options: 
+  chunk_output_type: inline
+---
+
+
+
+```{r}
+library(readxl)
+library(stringr)
+library(dplyr)
+library(janitor)
+sole_vendor <- read_excel("C:/Users/LyndaHoward/OneDrive - NHS England/Desktop/Copy of sole vendor mapping task.xlsx", sheet = "Single Vendors") 
+names(sole_vendor) <- make_clean_names(names(sole_vendor))
+sole_vendor <- sole_vendor |> select(organisation_code, organisation, supplier_primary_epr, epr_group, longitude, latitude) |>  
+    rename(supplier = supplier_primary_epr) |> 
+    mutate(organisation = make_clean_names(organisation, case = "title")) |> 
+    mutate(organisation = str_replace(organisation, "Nhs", "NHS"))|> 
+    mutate(popup = paste0(organisation, ", ", epr_group)) 
+
+other_vendor <- read_excel("C:/Users/LyndaHoward/OneDrive - NHS England/Desktop/Copy of sole vendor mapping task.xlsx", sheet = "EPR Core Metrics") 
+names(other_vendor) <- make_clean_names(names(other_vendor))
+other_vendor <- other_vendor |> select(organisation_code, organisation, supplier_primary_epr, epr_group, longitude, latitude) |>  
+    rename(supplier = supplier_primary_epr) |> 
+    mutate(organisation = make_clean_names(organisation, case = "title")) |> 
+    mutate(organisation = str_replace(organisation, "Nhs", "NHS"))|> 
+    mutate(popup = paste0(organisation, ", ", epr_group)) |> 
+    filter(! organisation_code %in% unique(sole_vendor$organisation_code))
+
+```
+
+## Static map
+
+
+
+```{r}
+library(ggplot2)
+library(maps)
+library(mapproj)
+
+
+```
+
+
+```{r}
+library(ggrepel)
+
+UK <- map_data(map = "world", region = "UK")
+ggplot() + 
+  geom_polygon(data = UK, 
+               aes(x = long, y = lat, 
+                   group = group), 
+               fill = 'grey90', 
+               color = 'darkgrey') + 
+  coord_fixed(ratio = 1.3, 
+              xlim = c(-8,3), 
+              ylim = c(50, 55)) + 
+  theme_void()  + geom_point(data=sole_vendor, aes(x = longitude, y = latitude, colour = supplier)) + geom_text_repel(data = sole_vendor, size = 2.5, aes(x = longitude, y = latitude, label = popup)) + labs(title = "Trusts using a unique EPR") +
+theme(plot.title = element_text(hjust = 0.5, vjust = 5))
+# +
+#   geom_point(data = other_vendor, aes(x = longitude, y = latitude, colour = supplier))
+  
+```
+
+## Interactive map
+
+```{r}
+
+library(leaflet)
+library(RColorBrewer)
+library(sf) #TO READ MAPPING BOUNDARIES
+library(geojsonio)
+library(spatialEco)
+library(leaflet.extras)
+
+#map_points <- sole_vendor |>  rename(lng = longitude, lat = latitude) |>  select(lng, lat)
+
+pal <- colorFactor("viridis", levels = other_vendor$supplier)
+
+  leaflet() |> 
+      addTiles() |> addMarkers(data = sole_vendor, popup = ~popup) |> 
+    addCircleMarkers(data = other_vendor, popup = ~popup, color = ~pal(supplier), opacity = 0.7, radius = 4) |> 
+    addLegend(data = other_vendor, position = "topleft", pal = pal, values = ~supplier, title = "Suppliers to multiple trusts", opacity = 1)
+      
+```

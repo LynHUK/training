@@ -1,0 +1,119 @@
+---
+title: "Mostly dplyr"
+format: html
+execute: 
+  echo: false
+  warning: false
+editor: visual
+---
+#
+
+### A reminder
+Insert code chunks using the +C icon top right of the Source pane or use Ctrl + Alt + I
+
+```{r}
+#install.packages("NHSRdatasets")
+library(tidyverse)
+
+```
+
+## Looking at your data
+
+Compare these different option for inspecting your data. You can run the only the line your cursor is on, or the code selected, using Ctrl + Enter.
+
+```{r}
+str(NHSRdatasets::ae_attendances)
+
+glimpse(NHSRdatasets::ae_attendances)
+
+view(NHSRdatasets::ae_attendances)
+
+head(NHSRdatasets::ae_attendances, 10)
+
+```
+
+
+## Select
+
+When you don't want to manipulate a full data set, `dplyr::select()` allows you to select only the columns you want to use.
+
+```{r}
+NHSRdatasets::ae_attendances |> select(1:4)   # using column numbers
+NHSRdatasets::ae_attendances |> select(period, org_code)
+```
+
+## Mutate
+
+The [mutate()](https://dplyr.tidyverse.org/reference/mutate.html) function allows you to add additional columns based on manipulating the existing data.
+
+```{r}
+ae_data_with_year <- NHSRdatasets::ae_attendances |>  mutate(year = year(period))
+```
+
+## Filter
+
+The [filter()](https://dplyr.tidyverse.org/reference/filter.html) function subsets rows of data based on the filtering criteria.
+
+```{r}
+ae_data_with_year |>  filter(year > 2017, type != 'other')
+
+ae_data_2019 <- ae_data_with_year |>  filter(year == 2019, between(breaches, 10, 100))
+
+ae_data_with_year |> filter(org_code %in% c('RF4', 'R1H', 'RYC'))
+```
+
+## Summarise
+
+You can use [summarise()](https://dplyr.tidyverse.org/reference/summarise.html) to apply the function to the whole data set, but the results are more generally more useful when grouped into subsets using `.by`.
+
+Useful functions that can be used in summarise(): Center: mean(), median()
+
+Spread: sd(), IQR(), mad()
+
+Range: min(), max(),
+
+Position: first(), last(), nth(),
+
+Count: n(), n_distinct()
+
+Logical: any(), all()
+
+You can also rename them to something that looks better in your output.
+
+```{r}
+ae_data_with_year |> arrange(org_code) |> summarise(.by = c(org_code, year), max(attendances), "lowest attendance" = min(attendances))
+```
+
+### `na.rm = TRUE`
+
+You can use the argument na.rm = TRUE to exclude missing values.
+
+```{r}
+ae_data_with_year |> arrange(org_code) |> summarise(.by = c(org_code, year), max(attendances, na.rm = TRUE), "lowest attendance" = min(attendances, na.rm = TRUE))
+```
+
+Note that na.rm only looks at the specific column you're working with. If you want to remove the complete row with a missing data point you should use [drop.na](https://www.statology.org/drop_na-in-r/).
+
+## Resources
+
+Useful resources for handling dates in R:
+
+-   [Make Dealing with Dates a Little Easier • lubridate (tidyverse.org)](https://lubridate.tidyverse.org/)
+
+-   [A Comprehensive Introduction to Handling Date & Time in R](https://www.r-bloggers.com/2020/04/a-comprehensive-introduction-to-handling-date-time-in-r/)
+
+-   [How to Convert Numbers to Dates in R - Statology](https://www.statology.org/convert-number-to-date-in-r/)
+
+-   [The Complete Guide to Date Formats in R - Statology](https://www.statology.org/r-date-format/)
+
+-   [Quarto Dates and Date Formatting](https://quarto.org/docs/reference/dates.html)
+
+-   [Public Health Scotland's package includes functions to extract the financial year from a date](https://github.com/Public-Health-Scotland/phsmethods)
+
+Useful resources for the `summarise` function:
+
+-   [Summarise each group down to one row](https://dplyr.tidyverse.org/reference/summarise.html)
+
+-   [The Complete Guide: How to Group & Summarize Data in R - Statology](https://www.statology.org/group-summarize-data-r/#:~:text=The%20basic%20syntax%20that%20we%E2%80%99ll%20use%20to%20group,functions%20summarize%20%28%29%20and%20summarise%20%28%29%20are%20equivalent.)
+
+[Data wrangling in a single step with across()](https://www.youtube.com/watch?v=sVIJk8f3DwM)

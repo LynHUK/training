@@ -1,0 +1,99 @@
+---
+title: "R training part 2"
+format: html
+execute: 
+  echo: fenced
+Params: 
+  org_code = "RF4"
+---
+
+## NHSRtheme
+
+An R package that can provide themes to ggplot for producing charts that follow the NHS Identity [guidelines](https://www.england.nhs.uk/nhsidentity/identity-guidelines/).
+
+## Formatting in HTML
+
+### Figure size
+
+Quarto has [default height & width](https://quarto.org/docs/computations/execution-options.html#figure-options) set, but you can override these using `fig-width` , `fig-height` , or `out-width`, `out-height`, among [many options](https://quarto.org/docs/reference/cells/cells-knitr.html#figures). Unit identifies that can be used include px, cm, and %. This can be done either in the YAML at the top of the file so that it is applied to all the figures produced, or in a code chunk so that it is applied only to that chunk.Execution options set in a code chunk will take precedence over those set in the YAML.
+
+``` yaml
+---
+title: "My Document"
+format: 
+  html:
+    fig-width: 8
+    fig-height: 6
+  pdf:
+    fig-width: 7
+    fig-height: 5
+---
+```
+
+or
+
+```{{r}}
+#| out-width: 20%
+
+
+```
+
+### Tabs
+
+You can introduce tabsets using `::: {.panel-tabset}` at the start of the section and end with `:::`. A tab will be added for each heading contained within -
+
+::: panel-tabset
+## Tab 1
+
+```{r}
+1+1
+```
+
+## Tab 2
+
+```{r}
+2+2
+```
+:::
+
+## Saving & file locations
+
+### {usethis} package
+
+```{{r}}
+install.packages("usethis")
+usethis::edit_r_environ()                 # Opens the .Renviron file
+```
+
+Then set your path to the SharePoint folder you've sync'd to your OneDrive, e.g. `MY_PATH = "C:/Users/LyndaHoward/NHS England/Estates Support Office - ERIC Work Programme"`
+
+Save and close the file. Restart R for the changes to take effect.
+
+The variable `MY_PATH` can be retrieved using the `Sys.getenv()` function. You can add as many paths as you need in this way. file.path(Sys.getenv("MY_PATH"),"test")
+
+## Parameters in Quarto & rmarkdown
+
+### rendering with params
+
+```{{r}}
+quarto::quarto_render(
+  input = "quarto_file.qmd",                        # Input Quarto file   
+  output_format = "html",                           # Output format   
+  output_file = "Report.html",                      # Output file name   
+  execute_params = list(                            # Named list of parameters     
+    trust = "RXR",    
+    year = 2023   
+    ))
+```
+
+## HELP!!!
+
+When you need to post on a forum asking for help you'll often be asked to include a reprex (reproducible example). The dput() function allows you to create this.
+
+```{r}
+#create a small dataset
+help_needed <- NHSRdatasets::ae_attendances |>  mutate(year = year(period)) |>  filter(year == 2019, between(breaches, 10, 100))|> filter(org_code %in% c('RF4', 'R1H', 'RYC'))
+
+#create the code that will reproduce this dataset
+dput(help_needed)
+```

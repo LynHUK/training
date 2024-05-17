@@ -1,0 +1,129 @@
+---
+title: "Quarto Introduction"
+author: Lyn Howard
+format:
+  html:
+    toc: true
+    toc-location: right
+    toc_float: true
+    toc-expand: 2
+editor: visual
+execute: 
+  echo: true
+  warning: false
+---
+
+# Quarto
+
+Quarto enables you to combine content and executable code into a document, presentation, dashboard, etc. To learn more about Quarto see <https://quarto.org/docs/> or for a quick reference see [the Quarto Cheatsheet](https://rstudio.github.io/cheatsheets/quarto.pdf). There's also a growing number of blog posts and YouTube videos explaining how to get the most out of Quarto.
+
+I want this **bold**
+
+## Bullets
+
+When you click the **Render** button a document will be generated that includes:
+
+-   Content authored with markdown
+-   Output from executable code
+
+### Formatting text
+
+*italics*
+
+**bold**
+
+***bold italics***
+
+Superscript^2^
+
+Subscript~2~
+
+~~strikethrough~~
+
+## Code
+
+When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+
+```
+
+You can include everything within one self contained file, including adding packages and reading in data.
+
+```{r}
+library(tidyverse)
+library(DT)
+library(plotly)
+library(palmerpenguins)
+library(patchwork)
+```
+
+### Data
+
+In html format you can include interactive tables.
+
+```{r}
+penguins |> summarise(.by = species, across(where(is.numeric), mean)) |>  DT::datatable(
+                extensions ='Buttons',
+                options =list(dom ='Blfrtip',
+                               buttons =c('copy', 'csv', 'excel', 'pdf'),
+                               lengthMenu =list(c(10,25,50,-1),
+                                                 c(10,25,50,"All"))))
+```
+
+### R objects
+
+You can include r objects inline with text.
+
+```{r}
+heavy_penguin <-penguins$body_mass_g |> sort.default() |> max()
+```
+
+The heaviest penguin weighed `r heavy_penguin`g.
+
+## Charts
+
+[ggplot cheatsheet](https://rstudio.github.io/cheatsheets/html/data-visualization.html#basics)
+```{r}
+
+```
+
+```{r}
+penguins_bp <- penguins |> ggplot(aes(flipper_length_mm, body_mass_g))+ geom_boxplot(aes(colour = species)) + theme_classic()
+penguins_bp 
+```
+
+```{r}
+penguins_plot <- penguins |> ggplot(aes(x = flipper_length_mm,
+                            y = body_mass_g)) +
+  geom_point(aes(color = sex)) +
+  labs(title = "Penguin flipper and body mass",
+       subtitle = "Dimensions for male and female   \nAdelie, Chinstrap and Gentoo Penguins",
+       caption = "ggplot is great for producing static plots",
+       x = "Flipper length (mm)",
+       y = "Body mass (g)",
+       color = "Penguin sex") +
+  theme(legend.position = "top") 
+
+p1 <- penguins_plot + facet_wrap(~species)
+p1
+```
+
+### Layouts
+
+The package `{patchwork}` can be used to arrange ggplot objects. Detailed explanation can be found at <https://patchwork.data-imaginist.com/articles/patchwork.html>
+
+```{r}
+(penguins_plot + penguins_bp )/p1
+```
+
+### Interactive charts
+
+The `{plotly}` function `ggplotly` provides an interactive version of a ggplot object.
+
+```{r}
+penguins_plot |> plotly::ggplotly()
+```
+
+## Another way to render
