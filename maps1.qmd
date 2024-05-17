@@ -10,7 +10,7 @@ execute:
   warning: false
 ---
 
-## reading our data
+## reading our data into r
 
 ```{r}
 library(readxl)
